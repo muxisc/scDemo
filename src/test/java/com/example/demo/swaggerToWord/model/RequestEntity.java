@@ -1,6 +1,6 @@
-package com.example.demo;
+package com.example.demo.swaggerToWord.model;
 
-public class Request {
+public class RequestEntity {
 
     /**
      * 请求参数描述

@@ -1,15 +1,15 @@
-package com.example.demo;
+package com.example.demo.service.impl;
 
+import com.example.demo.model.Div;
+import com.example.demo.model.Request;
+import com.example.demo.model.Response;
+import com.example.demo.model.Table;
+import com.example.demo.service.ApiDocService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import freemarker.template.Configuration;
-import freemarker.template.ObjectWrapper;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.poifs.filesystem.DirectoryEntry;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.springframework.stereotype.Service;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.util.HtmlUtils;
 
@@ -17,10 +17,12 @@ import java.io.*;
 import java.net.URL;
 import java.util.*;
 
-public class Util {
+@Service
+public class ApiDocServiceImpl implements ApiDocService {
 
 
-    public static List<Div> tableList() {
+    @Override
+    public List<Div> tableList() {
         List<Table> list = new LinkedList<>();
         try {
             URL resource = ClassUtils.getDefaultClassLoader().getResource("api-docs.json");
@@ -149,8 +151,9 @@ public class Util {
         return null;
     }
 
+
     //归类table方法
-    public static List<Div> classifyTable(Map<String, List<Table>> divMap){
+    private List<Div> classifyTable(Map<String, List<Table>> divMap){
         List<Div> divs = new ArrayList<>();
         Set<String> keySet = divMap.keySet();
         Integer index = 1;
@@ -178,7 +181,7 @@ public class Util {
     }
 
     //解析tags
-    public static Map<String, String> parseTags(Map map){
+    private Map<String, String> parseTags(Map map){
         ArrayList<LinkedHashMap<String, String>> tags = (ArrayList) map.get("tags");
         Map<String, String> tagsMap = new HashMap<>();
         tags.forEach(item->{
@@ -193,7 +196,7 @@ public class Util {
     }
 
     //封装Table
-    public static void listTable(List<Table> list, Table table, String title, String titleDesc, String url, String tag, String requestType,
+    private void listTable(List<Table> list, Table table, String title, String titleDesc, String url, String tag, String requestType,
                            List<Request> requestList, List<Response> responseList){
         table.setTitle(title);
         table.setTitleDesc(titleDesc);
@@ -208,7 +211,7 @@ public class Util {
     }
 
     //封装返回信息，可能需求不一样，可以自定义
-    public static List<Response> listResponse() {
+    private List<Response> listResponse() {
         List<Response> responseList = new LinkedList<Response>();
         responseList.add(new Response("结果说明信息", "msg", null));
         responseList.add(new Response("返回对象", "data", null));
@@ -219,7 +222,7 @@ public class Util {
     }
 
     //封装post请求体
-    public static Map<String, String> toPostBody(List<Request> list) {
+    private Map<String, String> toPostBody(List<Request> list) {
         Map<String, String> map = new HashMap<>(16);
         if (list != null && list.size() > 0) {
             for (Request request : list) {
@@ -246,7 +249,7 @@ public class Util {
     }
 
     //封装get请求头
-    public static String toGetHeader(List<Request> list) {
+    private String toGetHeader(List<Request> list) {
         StringBuffer stringBuffer = new StringBuffer();
         if (list != null && list.size() > 0) {
             for (Request request : list) {
@@ -286,78 +289,9 @@ public class Util {
     }
 
 
-
-    /**
-     * 通过JSON生成Html，Excel，Word
-     * @param data 数据源
-     * @param fileName 输出的文件名
-     * @param templateFilePath 模板的文件路径
-     * @param templateFile 模板的文件名
-     */
-    public static void createDayReportFiles(Map<String, Object> data, String fileName, String templateFilePath, String templateFile) {
-        BufferedInputStream in = null;
-        Writer out = null;
-        Template template = null;
-        try {
-            //构造Configuration
-            Configuration configuration = new Configuration();
-            configuration.setDefaultEncoding("utf-8");
-            configuration.setObjectWrapper(ObjectWrapper.BEANS_WRAPPER);
-            configuration.setDirectoryForTemplateLoading(new File(templateFilePath));
-
-            try {
-                //template.ftl为要装载的模板
-                template = configuration.getTemplate(templateFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            //输出文档路径及名称
-            File outFile = new File(fileName);
-
-            FileOutputStream fos = null;
-            try {
-                fos = new FileOutputStream(outFile);
-                OutputStreamWriter oWriter = new OutputStreamWriter(fos,"UTF-8");
-                //这个地方对流的编码不可或缺，使用main（）单独调用时，应该可以，但是如果是web请求导出时导出后word文档就会打不开，并且包XML文件错误。主要是编码格式不正确，无法解析。
-                out = new BufferedWriter(oWriter);
-
-            } catch (FileNotFoundException e1) {
-                e1.printStackTrace();
-            }
-
-            //生成HTML
-            template.process(data, out);
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (TemplateException e) {
-            e.printStackTrace();
-        } finally {
-            if(null != in) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if(null != out) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-
-    public static void htmlToWord(String content) {
-        String path = "E:/test";
+    @Override
+    public void htmlToWord(String content) {
+        String path = "E:/wordFile";
         if (!"".equals(path)) {
             File fileDir = new File(path);
             if (!fileDir.exists()) {
@@ -366,38 +300,25 @@ public class Util {
 
             content = HtmlUtils.htmlUnescape(content);
             try {
+                // 生成doc格式的word文档，需要手动改为docx？？？
                 byte by[] = content.getBytes("UTF-8");
                 ByteArrayInputStream bais = new ByteArrayInputStream(by);
                 POIFSFileSystem poifs = new POIFSFileSystem();
                 DirectoryEntry directory = poifs.getRoot();
                 directory.createDocument("WordDocument", bais);
 
-                FileOutputStream ostream = new FileOutputStream("E:\\test\\111.doc");
+                FileOutputStream ostream = new FileOutputStream("E:\\wordFile\\apiWord.doc");
                 poifs.writeFilesystem(ostream);
 
                 bais.close();
                 ostream.close();
 
-
-                /*XWPFDocument xdoc = new XWPFDocument();
-                FileOutputStream fos = null;
-                try {
-                    String docPath = "D:\\wordFile\\111.docx";
-                    FileUtils.forceMkdirParent(new File(docPath));
-                    fos = new FileOutputStream(docPath);
-                    xdoc.write(fos);
-                    fos.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }*/
-
                 //临时文件（手动改好的docx文件）
-                //XWPFDocument doc = OfficeUtil.generateWord("E:\\test\\111.docx");
+                //XWPFDocument doc = OfficeUtil.generateWord(param, "D:\\wordFile\\apiWord.docx");
                 //最终生成的带图片的word文件
-                //FileOutputStream fopts = new FileOutputStream("E:\\test\\final.docx");
+                //FileOutputStream fopts = new FileOutputStream("D:\\wordFile\\final.docx");
                 //doc.write(fopts);
                 //fopts.close();
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -405,30 +326,5 @@ public class Util {
     }
 
 
-    public static String getHtmlContent(String htmlPath) {
-        StringBuffer sb = new StringBuffer();
-        BufferedInputStream bis = null;
-        try {
-            File f = new File(htmlPath);
-            FileInputStream fis = new FileInputStream(f);
-            bis = new BufferedInputStream(fis);
-            int len = 0;
-            byte[] temp = new byte[1024];
-            while ((len = bis.read(temp)) != -1) {
-                sb.append(new String(temp, 0, len));
-            }
-        } catch (Exception e) {
-        } finally {
-            if (bis != null) {
-                try {
-                    bis.close();
-                } catch (IOException e) {
-                }
-            }
-        }
-        return sb.toString();
-    }
-
-
-
 }
+

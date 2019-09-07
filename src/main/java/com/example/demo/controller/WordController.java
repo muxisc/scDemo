@@ -1,6 +1,9 @@
-package com.example.demo;
+package com.example.demo.controller;
 
 
+import com.example.demo.service.ApiDocService;
+import com.example.demo.model.Div;
+import com.example.demo.utils.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -8,9 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.*;
 
 
@@ -32,9 +32,8 @@ public class WordController {
 
     @PostMapping("/htmlToWord")
     public void htmlToWord(String html) {
-        tableService.htmlToWord(html);
 
-        System.out.println("---->>>>-----------------哈哈哈哈");
+        tableService.htmlToWord(html);
     }
 
 
@@ -45,10 +44,10 @@ public class WordController {
         resultMap.put("divs", divs);
 
         //生成HTML
-        Util.createDayReportFiles(resultMap,"E:/test/111.html","E:/test/","template.ftl");
+        Util.createDayReportFiles(resultMap,"E:/test/1.html","E:/test/","template.ftl");
 
         //HTML转Doc
-        String concent = Util.getHtmlContent("E:/test/111.html");
+        String concent = Util.getHtmlContent("E:/test/1.html");
         Util.htmlToWord(concent);
 
     }
